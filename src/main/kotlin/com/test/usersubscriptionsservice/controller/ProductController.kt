@@ -38,7 +38,7 @@ class ProductController(
 
     private fun ProductEntity.toProductResponseMessage(): ProductResponseMessage {
         return ProductResponseMessage(
-            id = this.id!!,
+            id = requireNotNull(this.id) { "Product ID cannot be null" },
             name = this.name,
             description = this.description,
             duration = this.duration,
