@@ -1,5 +1,6 @@
 package com.test.usersubscriptionsservice.service
 
+import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import com.test.usersubscriptionsservice.entity.ProductEntity
 import com.test.usersubscriptionsservice.exception.ProductNotFoundException
@@ -19,6 +20,9 @@ internal class ProductServiceTest {
     @Mock
     private lateinit var productRepository: ProductRepository
 
+    @Mock
+    private lateinit var subscriptionService: SubscriptionService
+
     @InjectMocks
     private lateinit var productService: ProductService
 
@@ -29,12 +33,16 @@ internal class ProductServiceTest {
         val productEntity = ProductEntity(
             id = productId,
             name = "productName",
-            description = "productDescription"
+            description = "productDescription",
+            duration = ProductEntity.DurationPeriod.MONTH,
+            price = 69.99
         )
         val expectedResult = ProductEntity(
             id = productId,
             name = "productName",
-            description = "productDescription"
+            description = "productDescription",
+            duration = ProductEntity.DurationPeriod.MONTH,
+            price = 69.99
         )
 
         whenever(productRepository.findById(productId)).thenReturn(productEntity)
@@ -67,12 +75,16 @@ internal class ProductServiceTest {
         val productEntity1 = ProductEntity(
             id = productId1,
             name = "productName1",
-            description = "productDescription1"
+            description = "productDescription1",
+            duration = ProductEntity.DurationPeriod.YEAR,
+            price = 134.99
         )
         val productEntity2 = ProductEntity(
             id = productId2,
             name = "productName2",
-            description = "productDescription2"
+            description = "productDescription2",
+            duration = ProductEntity.DurationPeriod.YEAR,
+            price = 134.99
         )
         val expectedResult = listOf(productEntity1, productEntity2)
 
@@ -85,4 +97,16 @@ internal class ProductServiceTest {
         assertThat(result).isEqualTo(expectedResult)
     }
 
+    @Test
+    fun `Should call subscriptionService to create new subscription`() {
+        // GIVEN
+        val productId = UUID.randomUUID()
+        val userId = UUID.randomUUID()
+
+        // WHEN
+        productService.buyProduct(productId, userId)
+
+        // THEN
+        verify(subscriptionService).createSubscription(productId, userId)
+    }
  }

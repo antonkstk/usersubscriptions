@@ -5,6 +5,7 @@ import com.test.usersubscriptionsservice.controller.message.ProductResponseListM
 import com.test.usersubscriptionsservice.controller.message.ProductResponseMessage
 import com.test.usersubscriptionsservice.entity.ProductEntity
 import com.test.usersubscriptionsservice.exception.ProductNotFoundException
+import com.test.usersubscriptionsservice.exception.UserNotFoundException
 import com.test.usersubscriptionsservice.service.ProductService
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
@@ -29,6 +30,7 @@ internal class ProductControllerTest {
 
     @Autowired
     private lateinit var mvc: MockMvc
+
     @Test
     fun `Should return single product`() {
         // GIVEN
@@ -36,12 +38,16 @@ internal class ProductControllerTest {
         val productEntity = ProductEntity(
             id = productId,
             name = "productName",
-            description = "productDescription"
+            description = "productDescription",
+            duration = ProductEntity.DurationPeriod.WEEK,
+            price = 24.99
         )
         val productResponseMessage = ProductResponseMessage(
             id = productId,
             name = "productName",
-            description = "productDescription"
+            description = "productDescription",
+            duration = ProductEntity.DurationPeriod.WEEK,
+            price = 24.99
         )
 
         whenever(productService.getProduct(productId)).thenReturn(productEntity)
@@ -82,24 +88,32 @@ internal class ProductControllerTest {
         val productEntity1 = ProductEntity(
             id = productId1,
             name = "productName1",
-            description = "productDescription1"
+            description = "productDescription1",
+            duration = ProductEntity.DurationPeriod.MONTH,
+            price = 69.99
         )
         val productEntity2 = ProductEntity(
             id = productId2,
             name = "productName2",
-            description = "productDescription2"
+            description = "productDescription2",
+            duration = ProductEntity.DurationPeriod.YEAR,
+            price = 134.99
         )
         val productResponseListMessage = ProductResponseListMessage(
             productList = listOf(
                 ProductResponseMessage(
                     id = productId1,
                     name = "productName1",
-                    description = "productDescription1"
+                    description = "productDescription1",
+                    duration = ProductEntity.DurationPeriod.MONTH,
+                    price = 69.99
                 ),
                 ProductResponseMessage(
                     id = productId2,
                     name = "productName2",
-                    description = "productDescription2"
+                    description = "productDescription2",
+                    duration = ProductEntity.DurationPeriod.YEAR,
+                    price = 134.99
                 )
             )
         )
@@ -120,5 +134,54 @@ internal class ProductControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("$.productList[1].id", Matchers.`is`(productResponseListMessage.productList[1].id.toString())))
             .andExpect(MockMvcResultMatchers.jsonPath("$.productList[1].name", Matchers.`is`(productResponseListMessage.productList[1].name)))
             .andExpect(MockMvcResultMatchers.jsonPath("$.productList[1].description", Matchers.`is`(productResponseListMessage.productList[1].description)))
+    }
+
+    @Test
+    fun `Should return 201 when user successfully buys a product`() {
+        // GIVEN
+        val productId = UUID.randomUUID()
+        val userId = UUID.randomUUID()
+
+        // WHEN
+        mvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/products/{productId}/users/{userId}", productId, userId)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            // THEN
+            .andExpect(status().isCreated)
+    }
+
+    @Test
+    fun `Should return 404 when product is not found during the subscription creation`() {
+        // GIVEN
+        val productId = UUID.randomUUID()
+        val userId = UUID.randomUUID()
+
+        whenever(productService.buyProduct(productId, userId)).thenThrow(ProductNotFoundException(productId))
+
+        // WHEN
+        mvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/products/{productId}/users/{userId}", productId, userId)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            // THEN
+            .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `Should return 404 when user is not found during the subscription creation`() {
+        // GIVEN
+        val productId = UUID.randomUUID()
+        val userId = UUID.randomUUID()
+
+        whenever(productService.buyProduct(productId, userId)).thenThrow(UserNotFoundException(userId))
+
+        // WHEN
+        mvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/products/{productId}/users/{userId}", productId, userId)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            // THEN
+            .andExpect(status().isNotFound)
     }
 }

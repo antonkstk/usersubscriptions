@@ -4,6 +4,8 @@ import org.hibernate.annotations.GenericGenerator
 import java.util.UUID
 import javax.persistence.Column
 import javax.persistence.Entity
+import javax.persistence.EnumType
+import javax.persistence.Enumerated
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.Table
@@ -20,5 +22,18 @@ data class ProductEntity(
     val name: String,
 
     @Column(name = "description")
-    val description: String
-)
+    val description: String,
+
+    @Column(name = "duration")
+    @Enumerated(EnumType.STRING)
+    val duration: DurationPeriod,
+
+    @Column(name = "price")
+    val price: Double
+) {
+    enum class DurationPeriod {
+        WEEK,
+        MONTH,
+        YEAR
+    }
+}

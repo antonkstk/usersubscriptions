@@ -8,7 +8,8 @@ import java.util.UUID
 
 @Service
 class ProductService(
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
+    private val subscriptionService: SubscriptionService
 ) {
 
     fun getAllProducts(): List<ProductEntity> {
@@ -19,4 +20,7 @@ class ProductService(
         return productRepository.findById(productId) ?: throw ProductNotFoundException(productId)
     }
 
+    fun buyProduct(productId: UUID, userId: UUID) {
+        subscriptionService.createSubscription(productId, userId)
+    }
 }
