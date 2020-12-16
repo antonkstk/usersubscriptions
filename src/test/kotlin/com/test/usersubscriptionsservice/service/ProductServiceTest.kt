@@ -12,7 +12,11 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import java.util.UUID
+import java.util.Optional
 
 @ExtendWith(MockitoExtension::class)
 internal class ProductServiceTest {
@@ -45,7 +49,7 @@ internal class ProductServiceTest {
             price = 69.99
         )
 
-        whenever(productRepository.findById(productId)).thenReturn(productEntity)
+        whenever(productRepository.findById(productId)).thenReturn(Optional.ofNullable(productEntity))
 
         // WHEN
         val result = productService.getProduct(productId)
@@ -59,7 +63,7 @@ internal class ProductServiceTest {
         // GIVEN
         val productId = UUID.randomUUID()
 
-        whenever(productRepository.findById(productId)).thenReturn(null)
+        whenever(productRepository.findById(productId)).thenReturn(Optional.empty())
 
         // WHEN THEN
         assertThatThrownBy { productService.getProduct(productId) }
@@ -86,12 +90,14 @@ internal class ProductServiceTest {
             duration = ProductEntity.DurationPeriod.YEAR,
             price = 134.99
         )
+        val pageable = PageRequest.of(0, 2)
         val expectedResult = listOf(productEntity1, productEntity2)
+        val products: Page<ProductEntity> = PageImpl(expectedResult)
 
-        whenever(productRepository.findAll()).thenReturn(listOf(productEntity1, productEntity2))
+        whenever(productRepository.findAll(pageable)).thenReturn(products)
 
         // WHEN
-        val result = productService.getAllProducts()
+        val result = productService.getAllProducts(pageable)
 
         // THEN
         assertThat(result).isEqualTo(expectedResult)

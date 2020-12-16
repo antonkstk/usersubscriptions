@@ -19,6 +19,7 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import java.time.ZonedDateTime
 import java.util.UUID
+import java.util.Optional
 
 @ExtendWith(MockitoExtension::class)
 internal class SubscriptionServiceTest {
@@ -120,7 +121,7 @@ internal class SubscriptionServiceTest {
             productId = productId
         )
 
-        whenever(productRepository.findById(productId)).thenReturn(product)
+        whenever(productRepository.findById(productId)).thenReturn(Optional.ofNullable(product))
         whenever(userService.getUser(userId)).thenReturn(user)
         whenever(subscriptionRepository.save(any())).thenReturn(subscription)
 

@@ -1,6 +1,7 @@
 package com.test.usersubscriptionsservice.service
 
 import com.test.usersubscriptionsservice.controller.message.SubscriptionUpdateRequest
+import com.test.usersubscriptionsservice.entity.ProductEntity
 import com.test.usersubscriptionsservice.entity.ProductEntity.DurationPeriod
 import com.test.usersubscriptionsservice.entity.SubscriptionEntity
 import com.test.usersubscriptionsservice.exception.ProductNotFoundException
@@ -33,7 +34,7 @@ class SubscriptionService(
 
     @Transactional
     fun createSubscription(productId: UUID, userId: UUID) {
-        val product = productRepository.findById(productId) ?: throw ProductNotFoundException(productId)
+        val product = getProduct(productId)
         val user = userService.getUser(userId) ?: throw UserNotFoundException(userId)
 
         val startDate = ZonedDateTime.now()
@@ -71,6 +72,15 @@ class SubscriptionService(
             DurationPeriod.WEEK -> startDate.plusWeeks(1)
             DurationPeriod.MONTH -> startDate.plusMonths(1)
             DurationPeriod.YEAR -> startDate.plusYears(1)
+        }
+    }
+
+    private fun getProduct(productId: UUID): ProductEntity {
+        val productOptional = productRepository.findById(productId)
+        return if (productOptional.isPresent) {
+            productOptional.get()
+        } else {
+            throw ProductNotFoundException(productId)
         }
     }
 }

@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.http.MediaType
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
@@ -85,6 +87,7 @@ internal class ProductControllerTest {
         // GIVEN
         val productId1 = UUID.randomUUID()
         val productId2 = UUID.randomUUID()
+        val pageable = PageRequest.of(0, 2)
         val productEntity1 = ProductEntity(
             id = productId1,
             name = "productName1",
@@ -118,11 +121,11 @@ internal class ProductControllerTest {
             )
         )
 
-        whenever(productService.getAllProducts()).thenReturn(listOf(productEntity1, productEntity2))
+        whenever(productService.getAllProducts(pageable)).thenReturn(listOf(productEntity1, productEntity2))
 
         // WHEN
         mvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/products")
+            MockMvcRequestBuilders.get("/api/v1/products?size=2&page=0")
                 .contentType(MediaType.APPLICATION_JSON)
         )
         // THEN
