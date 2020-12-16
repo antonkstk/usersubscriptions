@@ -101,7 +101,7 @@ internal class SubscriptionServiceTest {
     }
 
     @Test
-    fun `Should call subscriptionRepository to resume subscription`() {
+    fun `Should call subscriptionRepository to resume subscription and update endDate`() {
         // GIVEN
         val subscriptionId = UUID.randomUUID()
         val startDate = ZonedDateTime.now().minusDays(3)

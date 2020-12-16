@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.transaction.Transactional
-import java.time.temporal.ChronoUnit.DAYS
+import java.time.temporal.ChronoUnit.MINUTES
 
 @Service
 class SubscriptionService(
@@ -90,8 +90,8 @@ class SubscriptionService(
 
     private fun resumeSubscription(subscription: SubscriptionEntity) {
         val pauseDate = requireNotNull(subscription.pauseDate) { "pauseDate cannot be null" }
-        val pausedDaysAmount = DAYS.between(pauseDate, ZonedDateTime.now())
-        val newEndDate = subscription.endDate.plusDays(pausedDaysAmount)
+        val pausedMinutesAmount = MINUTES.between(pauseDate, ZonedDateTime.now())
+        val newEndDate = subscription.endDate.plusMinutes(pausedMinutesAmount)
         subscriptionRepository.save(
             subscription.copy(
                 active = true,
