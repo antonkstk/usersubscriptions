@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.transaction.Transactional
+import java.time.temporal.ChronoUnit.DAYS
 
 @Service
 class SubscriptionService(
@@ -25,11 +26,14 @@ class SubscriptionService(
         return subscriptionRepository.findByUserIdAndDeletedFalse(userId) ?: throw SubscriptionNotFoundException()
     }
 
-    // TODO: consider updating endDate when resuming
     fun updateSubscription(id: UUID, subscriptionUpdateRequest: SubscriptionUpdateRequest) {
         val subscription = subscriptionRepository.findById(id) ?: throw SubscriptionNotFoundException()
 
-        subscriptionRepository.save(subscription.copy(active = subscriptionUpdateRequest.setActive))
+        if (subscriptionUpdateRequest.setActive) {
+            resumeSubscription(subscription)
+        } else {
+            pauseSubscription(subscription)
+        }
     }
 
     @Transactional
@@ -82,5 +86,27 @@ class SubscriptionService(
         } else {
             throw ProductNotFoundException(productId)
         }
+    }
+
+    private fun resumeSubscription(subscription: SubscriptionEntity) {
+        val pauseDate = requireNotNull(subscription.pauseDate) { "pauseDate cannot be null" }
+        val pausedDaysAmount = DAYS.between(pauseDate, ZonedDateTime.now())
+        val newEndDate = subscription.endDate.plusDays(pausedDaysAmount)
+        subscriptionRepository.save(
+            subscription.copy(
+                active = true,
+                endDate = newEndDate,
+                pauseDate = null
+            )
+        )
+    }
+
+    private fun pauseSubscription(subscription: SubscriptionEntity) {
+        subscriptionRepository.save(
+            subscription.copy(
+                active = false,
+                pauseDate = ZonedDateTime.now()
+            )
+        )
     }
 }

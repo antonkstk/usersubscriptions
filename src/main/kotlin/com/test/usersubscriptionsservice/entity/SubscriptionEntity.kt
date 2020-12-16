@@ -25,6 +25,9 @@ data class SubscriptionEntity(
     @Column(name = "end_date")
     val endDate: ZonedDateTime,
 
+    @Column(name = "pause_date")
+    val pauseDate: ZonedDateTime? = null,
+
     @Column(name = "price")
     val price: Double,
 

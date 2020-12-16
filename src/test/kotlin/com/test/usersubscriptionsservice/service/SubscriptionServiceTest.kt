@@ -1,6 +1,7 @@
 package com.test.usersubscriptionsservice.service
 
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import com.test.usersubscriptionsservice.controller.message.SubscriptionUpdateRequest
@@ -75,10 +76,11 @@ internal class SubscriptionServiceTest {
         // GIVEN
         val subscriptionId = UUID.randomUUID()
         val startDate = ZonedDateTime.now()
+        val endDate = startDate.plusWeeks(1)
         val subscription = SubscriptionEntity(
             id = subscriptionId,
             startDate = startDate,
-            endDate = startDate.plusWeeks(1),
+            endDate = endDate,
             price = 9.99
         )
         val subscriptionUpdateRequest = SubscriptionUpdateRequest(
@@ -91,7 +93,42 @@ internal class SubscriptionServiceTest {
         subscriptionService.updateSubscription(subscriptionId, subscriptionUpdateRequest)
 
         // THEN
-        verify(subscriptionRepository).save(subscription.copy(active = false))
+        argumentCaptor<SubscriptionEntity>().apply {
+            verify(subscriptionRepository).save(capture())
+            assertThat(firstValue.active).isEqualTo(false)
+            assertThat(firstValue.pauseDate).isBetween(startDate, endDate)
+        }
+    }
+
+    @Test
+    fun `Should call subscriptionRepository to resume subscription`() {
+        // GIVEN
+        val subscriptionId = UUID.randomUUID()
+        val startDate = ZonedDateTime.now().minusDays(3)
+        val endDate = startDate.plusWeeks(1)
+        val pauseDate = startDate.plusDays(1)
+        val subscription = SubscriptionEntity(
+            id = subscriptionId,
+            startDate = startDate,
+            endDate = endDate,
+            pauseDate = pauseDate,
+            price = 9.99
+        )
+        val subscriptionUpdateRequest = SubscriptionUpdateRequest(
+            setActive = true
+        )
+
+        whenever(subscriptionRepository.findById(subscriptionId)).thenReturn(subscription)
+
+        // WHEN
+        subscriptionService.updateSubscription(subscriptionId, subscriptionUpdateRequest)
+
+        // THEN
+        argumentCaptor<SubscriptionEntity>().apply {
+            verify(subscriptionRepository).save(capture())
+            assertThat(firstValue.active).isEqualTo(true)
+            assertThat(firstValue.endDate).isEqualTo(endDate.plusDays(2))
+        }
     }
 
     @Test

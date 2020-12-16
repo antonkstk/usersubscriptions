@@ -23,7 +23,7 @@ class SubscriptionController(
         return subscriptionService.getSubscriptionDetails(userId).toSubscriptionDetailsResponse()
     }
 
-    @PatchMapping("/{subscriptionId}") // TODO think about validation
+    @PatchMapping("/{subscriptionId}")
     fun updateSubscription(
         @PathVariable subscriptionId: UUID,
         @RequestBody subscriptionUpdateRequest: SubscriptionUpdateRequest
