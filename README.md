@@ -7,7 +7,7 @@ There are two possible options to start this application:
 This will start a webserver on port 8080 (http://localhost:8080) 
 
 Service uses H2 Database and has some test data loading into it on start up.
-After service started up, some user data is added to the database and can be fetched 
+After service started up, user and product data added to the database and can be fetched 
 by calling `Fetch information about all users` endpoint.
 
 ### Used technologies:
@@ -19,10 +19,11 @@ by calling `Fetch information about all users` endpoint.
 ### Service overview
 UserSubscriptionService provides you with the following API:
 
-* Fetch list of all products with pagination:
+* Fetch list of all products:
     ```
     curl "http://localhost:8080/api/v1/products?size={size}&page={page}"
     ```
+  This endpoint supports pagination to support use case with a big amount of data in DB.
 * Fetch single product:
     ```
     curl "http://localhost:8080/api/v1/products/{productId}"
@@ -33,6 +34,7 @@ UserSubscriptionService provides you with the following API:
          -H 'Content-Type: application/json; charset=utf-8' \
          -d $'{}'
     ```
+  This endpoint creates a subscription for a user for selected product.
 * Fetch user's subscription information:
     ```
     curl "http://localhost:8080/api/v1/subscriptions/users/{userId}" \
@@ -47,6 +49,8 @@ UserSubscriptionService provides you with the following API:
       "setActive": false
     }'
     ```
+  This endpoint considers date period when subscription was not active to update the
+  end date while resuming it.
 * Cancel subscription:
     ```
     curl -X "DELETE" "http://localhost:8080/api/v1/subscriptions/{subscriptionId}" \
